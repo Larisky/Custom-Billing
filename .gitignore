@@ -1,0 +1,16 @@
+# Build artifacts
+build-app.log
+*.log
+
+# Reference images / scratch files
+image.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,157 @@
+version: '3.8'
+
+services:
+  # Laravel Application (PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: billing_app
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - ./docker/php.ini:/usr/local/etc/php/conf.d/app.ini
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=billing_db
+      - DB_USERNAME=billing_user
+      - DB_PASSWORD=billing_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BROADCAST_DRIVER=reverb
+      - REVERB_HOST=reverb
+      - REVERB_PORT=8080
+      - REVERB_APP_ID=billing-app
+      - REVERB_APP_KEY=your-app-key
+      - REVERB_APP_SECRET=your-app-secret
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+    ports:
+      - "9000:9000"
+    networks:
+      - billing
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: billing_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./backend:/app
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - billing
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: billing_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: billing_db
+      MYSQL_USER: billing_user
+      MYSQL_PASSWORD: billing_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - billing
+
+  # Redis Cache & Queue
+  redis:
+    image: redis:7-alpine
+    container_name: billing_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - billing
+
+  # Laravel Reverb WebSocket Server
+  reverb:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: billing_reverb
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=billing_db
+      - DB_USERNAME=billing_user
+      - DB_PASSWORD=billing_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REVERB_HOST=0.0.0.0
+      - REVERB_PORT=8080
+      - REVERB_APP_ID=billing-app
+      - REVERB_APP_KEY=your-app-key
+      - REVERB_APP_SECRET=your-app-secret
+    ports:
+      - "8080:8080"
+    command: php artisan reverb:start
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - billing
+
+  # Queue Worker
+  queue:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: billing_queue
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=billing_db
+      - DB_USERNAME=billing_user
+      - DB_PASSWORD=billing_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - QUEUE_CONNECTION=redis
+    command: php artisan queue:work redis --sleep=3 --tries=3
+    depends_on:
+      - app
+      - redis
+    networks:
+      - billing
+
+networks:
+  billing:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
