@@ -2,6 +2,10 @@
 
 A comprehensive billing system with real-time WebSocket notifications using Laravel Reverb, Vue.js SPA, and Docker Compose. When payment statuses change, clients receive instant updates through a responsive web interface.
 
+## Architecture Overview
+
+![Dashboard Preview](image.png)
+
 ## Features
 
 -  **Real-time Notifications**: WebSocket-based payment status updates
