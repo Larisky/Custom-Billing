@@ -5,10 +5,12 @@ namespace Tests\Feature;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\PaymentService;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentApiTest extends TestCase
 {
+    #[Test]
     public function it_can_get_user_balance()
     {
         $user = User::factory()->create(['balance' => 100.00]);
@@ -18,6 +20,7 @@ class PaymentApiTest extends TestCase
              ->assertJson(['user_id' => $user->id, 'balance' => 100.00]);
     }
 
+    #[Test]
     public function it_can_initiate_a_payment()
     {
         $user = User::factory()->create();
@@ -36,6 +39,7 @@ class PaymentApiTest extends TestCase
         ]);
     }
 
+    #[Test]
     public function it_can_process_a_payment()
     {
         $user = User::factory()->create(['balance' => 0]);
@@ -54,6 +58,7 @@ class PaymentApiTest extends TestCase
         $this->assertContains($payment->status, [PaymentService::STATUS_SUCCESS, PaymentService::STATUS_FAILED]);
     }
 
+    #[Test]
     public function it_can_get_payment_history()
     {
         $user = User::factory()->create();
@@ -65,6 +70,7 @@ class PaymentApiTest extends TestCase
              ->assertJson(['user_id' => $user->id, 'total' => 5]);
     }
 
+    #[Test]
     public function it_can_get_payment_details()
     {
         $user = User::factory()->create();
@@ -80,6 +86,7 @@ class PaymentApiTest extends TestCase
              ->assertJson(['id' => $payment->id, 'amount' => 100.00, 'status' => PaymentService::STATUS_SUCCESS]);
     }
 
+    #[Test]
     public function it_can_refund_a_successful_payment()
     {
         $user = User::factory()->create(['balance' => 100.00]);
@@ -98,6 +105,7 @@ class PaymentApiTest extends TestCase
         $this->assertEquals(50.00, $user->balance);
     }
 
+    #[Test]
     public function it_validates_payment_amount()
     {
         $user = User::factory()->create();
@@ -106,6 +114,7 @@ class PaymentApiTest extends TestCase
              ->assertStatus(422);
     }
 
+    #[Test]
     public function it_gets_or_creates_test_user()
     {
         $this->getJson('/api/users/test')

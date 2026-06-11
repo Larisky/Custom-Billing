@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ChannelAuthorizationTest extends TestCase
 {
+    #[Test]
     public function users_can_only_access_their_own_payment_channel()
     {
         $user1 = User::factory()->create();
@@ -19,6 +21,7 @@ class ChannelAuthorizationTest extends TestCase
         $this->assertFalse($isAuthorized);
     }
 
+    #[Test]
     public function users_can_access_their_own_payment_channel()
     {
         $user = User::factory()->create();
@@ -28,6 +31,7 @@ class ChannelAuthorizationTest extends TestCase
         $this->assertTrue($isAuthorized);
     }
 
+    #[Test]
     public function channel_name_includes_user_id()
     {
         $user = User::factory()->create();

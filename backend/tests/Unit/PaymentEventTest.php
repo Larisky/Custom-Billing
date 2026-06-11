@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Services\PaymentService;
 use Illuminate\Support\Facades\Event;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class PaymentEventTest extends TestCase
@@ -19,6 +20,7 @@ class PaymentEventTest extends TestCase
         $this->paymentService = app(PaymentService::class);
     }
 
+    #[Test]
     public function it_dispatches_event_when_payment_status_changes_to_success()
     {
         Event::fake();
@@ -39,6 +41,7 @@ class PaymentEventTest extends TestCase
         });
     }
 
+    #[Test]
     public function it_dispatches_event_when_payment_status_changes_to_failed()
     {
         Event::fake();
@@ -59,6 +62,7 @@ class PaymentEventTest extends TestCase
         });
     }
 
+    #[Test]
     public function it_includes_correct_data_in_event()
     {
         Event::fake();
@@ -83,6 +87,7 @@ class PaymentEventTest extends TestCase
         });
     }
 
+    #[Test]
     public function event_broadcasts_on_private_channel()
     {
         Event::fake();
